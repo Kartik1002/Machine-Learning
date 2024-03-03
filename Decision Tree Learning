@@ -1,0 +1,56 @@
+import pandas as pd
+import numpy as np
+from math import log2
+
+def entropy(data):
+    """Calculate the entropy of a dataset."""
+    classes = data[data.columns[-1]].unique()
+    entropy_val = 0
+    total_instances = len(data)
+    
+    for cls in classes:
+        class_prob = len(data[data[data.columns[-1]] == cls]) / total_instances
+        entropy_val -= class_prob * log2(class_prob)
+        
+    return entropy_val
+
+def attribute_entropy(data, attribute):
+    #Calculate the entropy of an attribute.
+    attribute_entropy = 0
+    attribute_values = data[attribute].unique()
+    total_instances = len(data)
+    
+    for value in attribute_values:
+        subset = data[data[attribute] == value]
+        weight = len(subset) / total_instances
+        attribute_entropy -= weight * log2(weight)
+        
+    return attribute_entropy
+
+def information_gain(data, attribute):
+    #Calculate the information gain of an attribute
+    attribute_entropy_val = attribute_entropy(data, attribute)
+    attribute_values = data[attribute].unique()
+    total_instances = len(data)
+    attribute_entropy_sum = 0
+    
+    for value in attribute_values:
+        subset = data[data[attribute] == value]
+        subset_weight = len(subset) / total_instances
+        attribute_entropy_sum += subset_weight * entropy(subset)
+        
+    return entropy(data) - attribute_entropy_sum, attribute_entropy_val
+
+# Data
+data =pd.read_csv('DTL.csv')
+
+# Calculate information gain and entropy for each attribute
+attributes = data.columns[:-1]
+ig_results = {}
+
+print("Information Gain and Entropy for each attribute:")
+for attr in attributes:
+    ig, attr_ent = information_gain(data, attr)
+    ig_results[attr] = (ig, attr_ent)
+    print(f"{attr}: Information Gain={ig}, Entropy={attr_ent}")
+
